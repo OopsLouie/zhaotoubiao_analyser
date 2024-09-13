@@ -36,6 +36,24 @@ def select_file():
 def analyse():
     threading.Thread(target=analyse_internal).start()
 
+def get_url_result(url, keywords):
+    content = fetch_page_content(url)
+    # 错误处理
+    if "请求出现超时" in content:
+        log_message(content)
+        return -1, "请求出现超时", ""
+    elif "请求出现错误" in content:
+        log_message(content)
+        return -2, "请求出现错误", content
+    # 查找
+    for key in keywords:
+        if key in content:
+            log_message("找到"+key)
+            return 1, "找到"+key, content
+    else:
+        log_message("未找到")
+        return 0, "未找到", ""
+
 def analyse_internal():
     input_file = path_entry.get()
     if not input_file:
@@ -58,41 +76,38 @@ def analyse_internal():
         show_warning("请填入关键词, 一行一个")
         return
     urls = read_first_column(input_file)
-    results = []
-    contents = []
+    results_http = []
+    contents_http = []
+    results_https = []
+    contents_https = []
     sz = len(urls)
     for i in range(sz):
         url = urls[i]
         log_message(f"=========== 正在处理{i+1}/{sz} ===========")
         log_message(f"url: {url}")
-        if 'http' not in url:
-            url = "http://" + url
-        content = fetch_page_content(url)
-        # 错误处理
-        if "请求出现超时" in content:
-            results.append("请求超时")
-            contents.append(content)
-            log_message(content)
-            continue
-        elif "请求出现错误" in content:
-            results.append("请求错误")
-            contents.append(content)
-            log_message(content)
-            continue
 
-        # 查找关键字
-        for key in keywords:
-            if key in content:
-                results.append("找到"+key)
-                contents.append(content)
-                log_message("找到"+key)
-                break
+        try_url = "http://" + url
+        log_message("尝试http访问:")
+        rc, result, content = get_url_result(try_url, keywords)
+        results_http.append(result)
+        contents_http.append(content)
+
+        if (rc < 0):
+            try_url = "https://" + url
+            log_message("尝试https访问:")
+            rc, result, content = get_url_result(try_url, keywords)
+            results_https.append(result)
+            contents_https.append(content)
         else:
-            results.append("未找到")
-            contents.append("")
-            log_message("未找到")
+            results_https.append("无需爬取")
+            contents_https.append("")
 
-    write_lists_to_csv(output_file_path, urls, results, contents)
+    urls.insert(0, "url")
+    results_http.insert(0, "http访问结果")
+    contents_http.insert(0, "http访问页面内容")
+    results_https.insert(0, "https访问结果")
+    contents_https.insert(0, "https访问页面内容")
+    write_lists_to_csv(output_file_path, urls, results_http, contents_http, results_https, contents_https)
     log_message("分析完毕")
     log_message("文件保存到:" + output_file_path)
 

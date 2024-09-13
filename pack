@@ -2,7 +2,7 @@
 
 rm -rf build
 rm -rf main_window.spec
-v="1.0.0"
+v="1.0.1"
 echo "version_str=\"v${v}\"" > version.py
 pyinstaller.exe -F -w main_window.py
 mv dist/main_window.exe "dist/爬取分析软件v${v}.exe"
