@@ -75,7 +75,11 @@ def analyse_internal():
     if len(keywords) == 0:
         show_warning("请填入关键词, 一行一个")
         return
-    urls = read_first_column(input_file)
+    try:
+        urls = read_first_column(input_file)
+    except Exception as e:
+        show_warning(e)
+        return
     results_http = []
     contents_http = []
     results_https = []
