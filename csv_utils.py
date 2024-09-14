@@ -14,7 +14,7 @@ def write_lists_to_csv(file_path, *lists):
     num_rows = len(lists[0])
     if not all(len(lst) == num_rows for lst in lists):
         raise ValueError("所有列表的长度必须相同")
-    with open(file_path, mode='w', newline='', encoding='utf-8-sig') as file:
+    with open(file_path, mode='w', newline='', encoding='gbk') as file:
         writer = csv.writer(file)
         for rows in zip(*lists):
             writer.writerow(rows)
