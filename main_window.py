@@ -81,9 +81,7 @@ def analyse_internal():
         show_warning(e)
         return
     results_http = []
-    contents_http = []
     results_https = []
-    contents_https = []
     sz = len(urls)
     for i in range(sz):
         url = urls[i]
@@ -94,24 +92,31 @@ def analyse_internal():
         log_message("尝试http访问:")
         rc, result, content = get_url_result(try_url, keywords)
         results_http.append(result)
-        contents_http.append(content)
 
         if (rc < 0):
             try_url = "https://" + url
             log_message("尝试https访问:")
             rc, result, content = get_url_result(try_url, keywords)
             results_https.append(result)
-            contents_https.append(content)
         else:
             results_https.append("无需爬取")
-            contents_https.append("")
 
+    final_results=[]
+    for i in range(sz):
+        result_1 = results_http[i]
+        result_2 = results_https[i]
+        if result_1.startswith("找到") or result_2.startswith("找到"):
+            final_results.append("找到")
+        elif "未找到" in result_1 or "未找到" in result_2:
+            final_results.append("未找到")
+        else:
+            final_results.append("其他结果")
     urls.insert(0, "url")
     results_http.insert(0, "http访问结果")
-    contents_http.insert(0, "http访问页面内容")
     results_https.insert(0, "https访问结果")
-    contents_https.insert(0, "https访问页面内容")
-    write_lists_to_csv(output_file_path, urls, results_http, contents_http, results_https, contents_https)
+    final_results.insert(0, "汇总结果")
+
+    write_lists_to_csv(output_file_path, urls, results_http, results_https, final_results)
     log_message("分析完毕")
     log_message("文件保存到:" + output_file_path)
 
